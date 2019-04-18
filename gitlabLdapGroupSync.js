@@ -40,11 +40,23 @@ GitlabLdapGroupSync.prototype.sync = function () {
     }
     while(pagedUsers.length == 100);
 
-    var existingGitlabGroups = [];
-    var _existingGitlabGroups = yield gitlab.groups.list({ per_page: 100, page: 0 });
 
-    for (var group of _existingGitlabGroups) {
-      existingGitlabGroups.push(group.name);
+    //set the gitlab group members based on ldap group
+    var gitlabGroups = [];
+    var pagedGroups = [];
+    var i=0;
+    do {
+      i++;
+      pagedGroups = yield gitlab.groups.list({ per_page: 100, page: i });
+      gitlabGroups.push.apply(gitlabGroups, pagedGroups);
+
+    }
+    while(pagedGroups.length == 100);
+    
+    var gitlabGroupNames = ['admins'];
+
+    for (var group of gitlabGroups) {
+      gitlabGroupNames.push(group.name);
     }
 
     var gitlabUserMap = {};
@@ -63,24 +75,11 @@ GitlabLdapGroupSync.prototype.sync = function () {
     var ldapGroups = yield getAllLdapGroups(ldap);
     var groupMembers = {};
     for (var ldapGroup of ldapGroups) {
-      if (existingGitlabGroups.indexOf(ldapGroup.cn) != -1) {
+      if (gitlabGroupNames.indexOf(ldapGroup.cn) != -1) {
         groupMembers[ldapGroup.cn] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
       }
     }
     console.log(groupMembers);
-
-    //set the gitlab group members based on ldap group
-    var gitlabGroups = [];
-    var pagedGroups = [];
-    var i=0;
-    do {
-      i++;
-      pagedGroups = yield gitlab.groups.list({ per_page: 100, page: i });
-      gitlabGroups.push.apply(gitlabGroups, pagedGroups);
-
-    }
-    while(pagedGroups.length == 100);
-
 
     for (var gitlabGroup of gitlabGroups) {
       console.log('-------------------------');
