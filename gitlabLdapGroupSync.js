@@ -2,12 +2,15 @@ var co = require('co');
 var every = require('schedule').every;
 var ActiveDirectory = require('activedirectory');
 var NodeGitlab = require('node-gitlab');
+var Gitlab = require('gitlab/dist/es5').default;
+
 
 module.exports = GitlabLdapGroupSync;
 
 var isRunning = false;
 var gitlab = undefined;
 var ldap = undefined;
+var glapi = undefined;
 
 function GitlabLdapGroupSync(config) {
   if (!(this instanceof GitlabLdapGroupSync))
@@ -15,6 +18,12 @@ function GitlabLdapGroupSync(config) {
 
   gitlab = NodeGitlab.createThunk(config.gitlab);
   ldap = new ActiveDirectory(config.ldap);
+  
+  // Instantiating
+  glapi = new Gitlab({
+    url:   config.gitlab.api,
+    token: config.gitlab.privateToken
+  })  
 }
 
 
@@ -70,6 +79,13 @@ GitlabLdapGroupSync.prototype.sync = function () {
       }
     }
     console.log(gitlabUserMap);
+
+    
+    let user = await api.Users.create("joe", {
+        email: 'joe@somehwere.com',
+        username: 'joe'
+    });
+    console.log("user = "+JSON.stringify(user));
 
     //get all ldap groups and create a map with gitlab userid;
     var ldapGroups = yield getAllLdapGroups(ldap);
