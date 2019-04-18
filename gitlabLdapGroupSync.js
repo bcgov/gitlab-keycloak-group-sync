@@ -80,13 +80,6 @@ GitlabLdapGroupSync.prototype.sync = function () {
     }
     console.log(gitlabUserMap);
 
-    let xuser = yield glapi.Users.create({
-        email: 'joe@somehwere.com',
-        username: 'joe',
-        name: 'Joe',
-        reset_password: true
-    });
-    console.log("user = "+JSON.stringify(user));
 
     //get all ldap groups and create a map with gitlab userid;
     var ldapGroups = yield getAllLdapGroups(ldap);
@@ -142,6 +135,24 @@ GitlabLdapGroupSync.prototype.sync = function () {
         var access_level = groupMembers['admins'].indexOf(id) > -1 ? 40 : 30;
         console.log('add group member', { id: gitlabGroup.id, user_id: id, access_level: access_level });
         gitlab.groupMembers.create({ id: gitlabGroup.id, user_id: id, access_level: access_level });
+      }
+      
+      // if ldap member is not in gitlab, then add it
+      for (var member of members) {
+        if (currentMemberIds.indexOf(member) == -1) {
+          let id = member;
+          let newUser = yield glapi.Users.create({
+              email: id + '@cloud.local',
+              username: id,
+              name: id,
+              reset_password: true
+          });
+          console.log("user = "+JSON.stringify(newUser));
+
+          var access_level = groupMembers['admins'].indexOf(id) > -1 ? 40 : 30;
+          gitlab.groupMembers.create({ id: gitlabGroup.id, user_id: id, access_level: access_level });
+          
+        }
       }
     }
 
