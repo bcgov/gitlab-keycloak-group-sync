@@ -56,7 +56,7 @@ GitlabLdapGroupSync.prototype.sync = function () {
     var ldapGroups = yield getAllLdapGroups(ldap);
     var groupMembers = {};
     for (var ldapGroup of ldapGroups) {
-      groupMembers[ldapGroup.cn.replace('gitlab-', '')] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
+      groupMembers[ldapGroup.cn] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
     }
     console.log(groupMembers);
 
@@ -144,11 +144,13 @@ GitlabLdapGroupSync.prototype.stopScheduler = function () {
 
 function getAllLdapGroups(ldap) {
   return new Promise(function (resolve, reject) {
-    ldap.findGroups('CN=gitlab-*', function (err, groups) {
+    ldap.findGroups({filter:"(objectClass=posixGroup)", function (err, groups) {
       if (err) {
         reject(err);
         return;
       }
+      console.log('groups read from ldap:', groups.length);
+
       resolve(groups);
     });
   });
