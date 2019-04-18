@@ -40,7 +40,12 @@ GitlabLdapGroupSync.prototype.sync = function () {
     }
     while(pagedUsers.length == 100);
 
-    var existingGitlabGroups = yield gitlab.groups.list({ per_page: 100, page: 0 });
+    var existingGitlabGroups = [];
+    var _existingGitlabGroups = yield gitlab.groups.list({ per_page: 100, page: 0 });
+
+    for (var group of _existingGitlabGroups) {
+      existingGitlabGroups.push(group.name);
+    }
 
     var gitlabUserMap = {};
     var gitlabLocalUserIds = [];
