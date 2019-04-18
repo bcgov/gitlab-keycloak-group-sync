@@ -167,8 +167,8 @@ function resolveLdapGroupMembers(ldap, group, gitlabUserMap) {
 
       groupMembers = [];
       for (var user of users) {
-        if (gitlabUserMap[user.sAMAccountName.toLowerCase()]) {
-          groupMembers.push(gitlabUserMap[user.sAMAccountName.toLowerCase()]);
+        if (gitlabUserMap[user.uid.toLowerCase()]) {
+          groupMembers.push(gitlabUserMap[user.uid.toLowerCase()]);
         }
       }
       resolve(groupMembers);
