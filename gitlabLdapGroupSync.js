@@ -21,7 +21,7 @@ function GitlabLdapGroupSync(config) {
   
   // Instantiating
   glapi = new Gitlab({
-    url:   config.gitlab.api,
+    url:   config.gitlab.apiHost,
     token: config.gitlab.privateToken
   })  
 }
@@ -80,10 +80,11 @@ GitlabLdapGroupSync.prototype.sync = function () {
     }
     console.log(gitlabUserMap);
 
-    
-    let user = await api.Users.create("joe", {
+    let xuser = yield glapi.Users.create({
         email: 'joe@somehwere.com',
-        username: 'joe'
+        username: 'joe',
+        name: 'Joe',
+        reset_password: true
     });
     console.log("user = "+JSON.stringify(user));
 
