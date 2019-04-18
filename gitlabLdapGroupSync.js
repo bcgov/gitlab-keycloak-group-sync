@@ -144,7 +144,7 @@ GitlabLdapGroupSync.prototype.stopScheduler = function () {
 
 function getAllLdapGroups(ldap) {
   return new Promise(function (resolve, reject) {
-    ldap.findGroups({filter:"(objectClass=posixGroup)", function (err, groups) {
+    ldap.findGroups({filter:"(objectClass=posixGroup)"}, function (err, groups) {
       if (err) {
         reject(err);
         return;
