@@ -58,7 +58,7 @@ GitlabLdapGroupSync.prototype.sync = function () {
     var ldapGroups = yield getAllLdapGroups(ldap);
     var groupMembers = {};
     for (var ldapGroup of ldapGroups) {
-      if (existingGitlabGroups.indexOf(ldapGroup) != -1) {
+      if (existingGitlabGroups.indexOf(ldapGroup.cn) != -1) {
         groupMembers[ldapGroup.cn] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
       }
     }
