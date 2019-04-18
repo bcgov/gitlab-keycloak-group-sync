@@ -40,6 +40,8 @@ GitlabLdapGroupSync.prototype.sync = function () {
     }
     while(pagedUsers.length == 100);
 
+    var existingGitlabGroups = yield gitlab.groups.list({ per_page: 100, page: 0 });
+
     var gitlabUserMap = {};
     var gitlabLocalUserIds = [];
     for (var user of gitlabUsers) {
@@ -56,7 +58,9 @@ GitlabLdapGroupSync.prototype.sync = function () {
     var ldapGroups = yield getAllLdapGroups(ldap);
     var groupMembers = {};
     for (var ldapGroup of ldapGroups) {
-      groupMembers[ldapGroup.cn] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
+      if (existingGitlabGroups.indexOf(ldapGroup) != -1) {
+        groupMembers[ldapGroup.cn] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
+      }
     }
     console.log(groupMembers);
 
