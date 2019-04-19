@@ -35,7 +35,6 @@ GitlabLdapGroupSync.prototype.sync = function () {
   }
   isRunning = true;
 
-
   co(function* () {
     // find all users with a ldap identiy
     var gitlabUsers = [];
@@ -48,7 +47,6 @@ GitlabLdapGroupSync.prototype.sync = function () {
 
     }
     while(pagedUsers.length == 100);
-
 
     //set the gitlab group members based on ldap group
     var gitlabGroups = [];
@@ -81,19 +79,15 @@ GitlabLdapGroupSync.prototype.sync = function () {
         gitlabLocalUserIds.push(user.id);
       }
     }
-    console.log(gitlabUserMap);
-
 
     //get all ldap groups and create a map with gitlab userid;
     var ldapGroups = yield getAllLdapGroups(ldap);
     var groupMembers = {};
     for (var ldapGroup of ldapGroups) {
       if (gitlabGroupNames.indexOf(ldapGroup.cn) != -1) {
-               
         groupMembers[ldapGroup.cn] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
       }
     }
-    console.log(groupMembers);
 
     for (var gitlabGroup of gitlabGroups) {
       console.log('-------------------------');
@@ -126,10 +120,6 @@ GitlabLdapGroupSync.prototype.sync = function () {
 
       var members = groupMembers[gitlabGroup.name] || groupMembers[gitlabGroup.path] || groupMembers['default'] || [];
 
-//       if (gitlabUserMap[user.uid.toLowerCase()]) {
-//           groupMembers.push(gitlabUserMap[user.uid.toLowerCase()]);
-//       }
-
       //remove unlisted users
       var toDeleteIds = currentMemberIds.filter(x => members.indexOf(x) == -1);
       for (var id of toDeleteIds) {
@@ -145,23 +135,23 @@ GitlabLdapGroupSync.prototype.sync = function () {
         gitlab.groupMembers.create({ id: gitlabGroup.id, user_id: id, access_level: access_level });
       }
       
-      // if ldap member is not in gitlab, then add it
-      for (var member of members) {
-        if (currentMemberIds.indexOf(member) == -1) {
-          let id = member;
-          let newUser = yield glapi.Users.create({
-              email: id + '@cloud.local',
-              username: id,
-              name: id,
-              reset_password: true
-          });
-          console.log("user = "+JSON.stringify(newUser));
+//       // if ldap member is not in gitlab, then add it
+//       for (var member of members) {
+//         if (currentMemberIds.indexOf(member) == -1) {
+//           let id = member;
+//           let newUser = yield glapi.Users.create({
+//               email: id + '@cloud.local',
+//               username: id,
+//               name: id,
+//               reset_password: true
+//           });
+//           console.log("user = "+JSON.stringify(newUser));
 
-          var access_level = groupMembers['admins'].indexOf(id) > -1 ? 40 : 30;
-          gitlab.groupMembers.create({ id: gitlabGroup.id, user_id: id, access_level: access_level });
+//           var access_level = groupMembers['admins'].indexOf(id) > -1 ? 40 : 30;
+//           gitlab.groupMembers.create({ id: gitlabGroup.id, user_id: id, access_level: access_level });
           
-        }
-      }
+//         }
+//       }
     }
 
   }).then(function (value) {
@@ -211,7 +201,9 @@ function resolveLdapGroupMembers(ldap, group, gitlabUserMap) {
 
       groupMembers = [];
       for (var user of users) {
-        groupMembers.push(user.uid.toLowerCase());
+        if (gitlabUserMap[user.uid.toLowerCase()]) {
+            groupMembers.push(gitlabUserMap[user.uid.toLowerCase()]);
+        }
       }
       resolve(groupMembers);
     });
