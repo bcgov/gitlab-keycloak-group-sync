@@ -73,6 +73,9 @@ GitlabLdapGroupSync.prototype.sync = function () {
     for (var user of gitlabUsers) {
       if (user.identities.length > 0) {
         // gitlabUserMap[user.identities[0].extern_uid] = user.id
+        if (user.username.toLowerCase() != user.id) {
+            console.log("gitlabUserMap: ", user.username.toLowerCase(), " != ", user.id);
+        }
         gitlabUserMap[user.username.toLowerCase()] = user.id;
       } else {
         gitlabLocalUserIds.push(user.id);
@@ -86,6 +89,7 @@ GitlabLdapGroupSync.prototype.sync = function () {
     var groupMembers = {};
     for (var ldapGroup of ldapGroups) {
       if (gitlabGroupNames.indexOf(ldapGroup.cn) != -1) {
+               
         groupMembers[ldapGroup.cn] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
       }
     }
@@ -121,6 +125,10 @@ GitlabLdapGroupSync.prototype.sync = function () {
       }
 
       var members = groupMembers[gitlabGroup.name] || groupMembers[gitlabGroup.path] || groupMembers['default'] || [];
+
+//       if (gitlabUserMap[user.uid.toLowerCase()]) {
+//           groupMembers.push(gitlabUserMap[user.uid.toLowerCase()]);
+//       }
 
       //remove unlisted users
       var toDeleteIds = currentMemberIds.filter(x => members.indexOf(x) == -1);
@@ -203,9 +211,7 @@ function resolveLdapGroupMembers(ldap, group, gitlabUserMap) {
 
       groupMembers = [];
       for (var user of users) {
-        if (gitlabUserMap[user.uid.toLowerCase()]) {
-          groupMembers.push(gitlabUserMap[user.uid.toLowerCase()]);
-        }
+        groupMembers.push(user.uid.toLowerCase());
       }
       resolve(groupMembers);
     });
