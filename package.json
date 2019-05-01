@@ -20,7 +20,8 @@
     "jsonschema": "^1.1.1",
     "morgan": "^1.6.1",
     "node-gitlab": "^1.6.0",
-    "gitlab": "^4.5.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
     "schedule": "^0.1.0"
   },
   "devDependencies": {
