@@ -1,6 +1,6 @@
-# gitlab-ldap-group-sync
+# gitlab-keycloak-group-sync
 
-It provides a way to sync ldap group members with gitlab groups
+It provides a way to sync keycloak group members with gitlab groups
 
 ## Prerequisites
 
