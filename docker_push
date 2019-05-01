@@ -1,6 +1,14 @@
 #!/bin/bash
 
-export PROJECT="gitlab-keycloak-group-sync"
+export REPO="gitlab-keycloak-group-sync"
+
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-docker push ikethecoder/$PROJECT:latest
-docker push ikethecoder/$PROJECT:$TRAVIS_COMMIT
+
+docker push ikethecoder/$REPO:latest
+docker push ikethecoder/$REPO:$TRAVIS_COMMIT
+
+if [ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]; then
+    echo "dockerfile tagged pushing now"
+    docker push ikethecoder/$REPO:$TRAVIS_TAG
+    echo "$TRAVIS_TAG pushed successfully"
+fi
