@@ -18,9 +18,9 @@ if (result.errors.length > 0) {
   process.exit(1);
 }
 
-var gitlabLdapGroupSync = new require('./gitlabLdapGroupSync')(config);
-gitlabLdapGroupSync.startScheduler(config.syncInterval || '1h');
-gitlabLdapGroupSync.sync();
+var gitlabGroupSync = new require('./gitlabKeycloakGroupSync')(config);
+gitlabGroupSync.startScheduler(config.syncInterval || '1h');
+gitlabGroupSync.sync();
 
 /// EXPRESS
 var express = require('express');
@@ -30,7 +30,7 @@ var logger = require('morgan');
 
 var routes = require('./routes/index');
 var gitlabRoute = require('./routes/gitlab');
-gitlabRoute.init(gitlabLdapGroupSync);
+gitlabRoute.init(gitlabGroupSync);
 
 var app = express();
 app.set('port', config.port || process.env.PORT || 8080);

@@ -1,13 +1,15 @@
-FROM node:7.8.0
+FROM node:9-alpine
 
-MAINTAINER Stefan Jauker
+MAINTAINER ikethecoder
 
 ENV NODE_ENV production
 
-WORKDIR /opt/gitlab_ldap_group_sync
-COPY . /opt/gitlab_ldap_group_sync
+WORKDIR /opt/gitlab_keycloak_group_sync
+COPY package.json /opt/gitlab_keycloak_group_sync
 
 RUN npm prune && npm install
+
+COPY . /opt/gitlab_keycloak_group_sync
 
 CMD ["node", "./bin/www"]
 
