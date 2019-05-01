@@ -4,11 +4,11 @@ services:
 before_install:
   - docker build -t ikethecoder/gitlab-keycloak-group-sync .
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - echo " |
+  - echo `
         #!/bin/bash
         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         docker push USER/REPO  
-    " > docker_push
+    ` > docker_push
 
 deploy:
   provider: script
