@@ -1,4 +1,6 @@
 #!/bin/bash
 
+export PROJECT="gitlab-keycloak-group-sync"
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-docker push ikethecoder/gitlab-keycloak-group-sync
+docker push ikethecoder/$PROJECT:latest
+docker push ikethecoder/$PROJECT:$TRAVIS_COMMIT
