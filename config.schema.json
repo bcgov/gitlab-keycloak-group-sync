@@ -31,13 +31,13 @@
         "privateToken"
       ]
     },
-    "ldap": {
+    "keycloak": {
       "type": "object",
       "properties": {
         "url": {
           "type": "string"
         },
-        "baseDN": {
+        "realm": {
           "type": "string"
         },
         "username": {
@@ -45,15 +45,10 @@
         },
         "password": {
           "type": "string"
-        },
-        "groupPrefix": {
-          "type": "string",
-          "default": "gitlab-"
         }
       },
       "required": [
         "url",
-        "baseDN",
         "username",
         "password"
       ]

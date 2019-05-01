@@ -1,33 +1,24 @@
 var co = require('co');
 var every = require('schedule').every;
-var ActiveDirectory = require('activedirectory');
+var Keycloak = require('./keycloak');
 var NodeGitlab = require('node-gitlab');
-var Gitlab = require('gitlab/dist/es5').default;
 
-
-module.exports = GitlabLdapGroupSync;
+module.exports = GitlabKeycloakGroupSync;
 
 var isRunning = false;
 var gitlab = undefined;
-var ldap = undefined;
-var glapi = undefined;
+var keycloak = undefined;
 
-function GitlabLdapGroupSync(config) {
-  if (!(this instanceof GitlabLdapGroupSync))
-    return new GitlabLdapGroupSync(config)
+function GitlabKeycloakGroupSync(config) {
+  if (!(this instanceof GitlabKeycloakGroupSync))
+    return new GitlabKeycloakGroupSync(config)
 
   gitlab = NodeGitlab.createThunk(config.gitlab);
-  ldap = new ActiveDirectory(config.ldap);
-  
-  // Instantiating
-  glapi = new Gitlab({
-    url:   config.gitlab.apiHost,
-    token: config.gitlab.privateToken
-  })  
+  keycloak = new Keycloak(config.keycloak);
 }
 
 
-GitlabLdapGroupSync.prototype.sync = function () {
+GitlabKeycloakGroupSync.prototype.sync = function () {
 
   if (isRunning) {
     console.log('ignore trigger, a sync is already running');
@@ -36,7 +27,7 @@ GitlabLdapGroupSync.prototype.sync = function () {
   isRunning = true;
 
   co(function* () {
-    // find all users with a ldap identiy
+    // find all users with an external identiy
     var gitlabUsers = [];
     var pagedUsers = [];
     var i=0;
@@ -48,7 +39,7 @@ GitlabLdapGroupSync.prototype.sync = function () {
     }
     while(pagedUsers.length == 100);
 
-    //set the gitlab group members based on ldap group
+    //set the gitlab group members based on keycloak group
     var gitlabGroups = [];
     var pagedGroups = [];
     var i=0;
@@ -80,12 +71,17 @@ GitlabLdapGroupSync.prototype.sync = function () {
       }
     }
 
-    //get all ldap groups and create a map with gitlab userid;
-    var ldapGroups = yield getAllLdapGroups(ldap);
+    //get all keycloak groups and create a map with gitlab userid;
+    var keycloakGroups = yield getAllKeycloakGroups(keycloak);
+    console.log("Group Count ", keycloakGroups.length);
+
     var groupMembers = {};
-    for (var ldapGroup of ldapGroups) {
-      if (gitlabGroupNames.indexOf(ldapGroup.cn) != -1) {
-        groupMembers[ldapGroup.cn] = yield resolveLdapGroupMembers(ldap, ldapGroup, gitlabUserMap);
+    groupMembers['admins'] = [];
+
+    for (var keycloakGroup of keycloakGroups) {
+      if (gitlabGroupNames.indexOf(keycloakGroup.name) != -1) {
+        console.log("Lookup ", keycloakGroup.name);
+        groupMembers[keycloakGroup.name] = yield resolveKeycloakGroupMembers(keycloak, keycloakGroup, gitlabUserMap);
       }
     }
 
@@ -108,10 +104,13 @@ GitlabLdapGroupSync.prototype.sync = function () {
         if (gitlabLocalUserIds.indexOf(member.id) > -1) {
           continue; //ignore local users
         }
+        if (member.access_level == 50) {
+          continue; // ignore owners
+        }
 
         var access_level = groupMembers['admins'].indexOf(member.id) > -1 ? 40 : 30;
         if (member.access_level !== access_level) {
-          console.log('update group member permission', { id: gitlabGroup.id, user_id: member.id, access_level: access_level });
+          console.log('update group member permission', { id: gitlabGroup.id, user_id: member.id, access_level: access_level }, " upgrade from ", member.access_level);
           gitlab.groupMembers.update({ id: gitlabGroup.id, user_id: member.id, access_level: access_level });
         }
 
@@ -146,48 +145,64 @@ GitlabLdapGroupSync.prototype.sync = function () {
 
 var ins = undefined;
 
-GitlabLdapGroupSync.prototype.startScheduler = function (interval) {
+GitlabKeycloakGroupSync.prototype.startScheduler = function (interval) {
   this.stopScheduler();
   ins = every(interval).do(this.sync);
 }
 
-GitlabLdapGroupSync.prototype.stopScheduler = function () {
+GitlabKeycloakGroupSync.prototype.stopScheduler = function () {
   if (ins) {
     ins.stop();
   }
   ins = undefined;
 }
 
-function getAllLdapGroups(ldap) {
-  return new Promise(function (resolve, reject) {
-    ldap.findGroups({filter:"(objectClass=posixGroup)"}, function (err, groups) {
-      if (err) {
-        reject(err);
-        return;
-      }
-      console.log('groups read from ldap:', groups.length);
+function getAllKeycloakGroups(keycloak) {
+  return keycloak.findGroups();
 
-      resolve(groups);
-    });
-  });
+  // return new Promise(function (resolve, reject) {
+  //   keycloak.findGroups(function (err, groups) {
+  //     if (err) {
+  //       reject(err);
+  //       return;
+  //     }
+  //     console.log('groups read from keycloak:', groups.length);
+
+  //     resolve(groups);
+  //   });
+  // });
 }
 
-function resolveLdapGroupMembers(ldap, group, gitlabUserMap) {
+function resolveKeycloakGroupMembers(keycloak, group, gitlabUserMap) {
   return new Promise(function (resolve, reject) {
-    var ldapGroups = {};
-    ldap.getUsersForGroup(group.cn, function (err, users) {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      groupMembers = [];
-      for (var user of users) {
-        if (gitlabUserMap[user.uid.toLowerCase()]) {
-            groupMembers.push(gitlabUserMap[user.uid.toLowerCase()]);
+    keycloak.getUsersForGroup(group.id).then (function (members) {
+        groupMembers = [];
+        for (var user of members) {
+          if (gitlabUserMap[user.username.toLowerCase()]) {
+              groupMembers.push(gitlabUserMap[user.username.toLowerCase()]);
+          }
         }
-      }
-      resolve(groupMembers);
+        resolve(groupMembers);
+    }).catch ((err) => {
+        reject(err);
     });
   });
+
+  // return new Promise(function (resolve, reject) {
+
+  //   keycloak.getUsersForGroup(group.id, function (err, users) {
+  //     if (err) {
+  //       reject(err);
+  //       return;
+  //     }
+
+  //     groupMembers = [];
+  //     for (var user of users) {
+  //       if (gitlabUserMap[user.uid.toLowerCase()]) {
+  //           groupMembers.push(gitlabUserMap[user.uid.toLowerCase()]);
+  //       }
+  //     }
+  //     resolve(groupMembers);
+  //   });
+  // });
 }
