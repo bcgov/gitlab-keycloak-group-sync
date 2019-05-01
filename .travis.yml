@@ -3,12 +3,15 @@ language: node_js
 services:
   - docker
 
-before_script:
+script:
   - docker build -t ikethecoder/gitlab-keycloak-group-sync .
 
-deploy:
-  provider: script
-  script: bash docker_push
-  on:
-    all_branches: true
-    condition: "$TRAVIS_BRANCH =~ ^master|develop$ || -n $TRAVIS_TAG"  
+jobs:
+  include:
+    - stage: deploy
+      install: skip # bundle install is not required
+      provider: script
+      script: bash docker_push
+      on:
+        all_branches: true
+        condition: "$TRAVIS_BRANCH =~ ^master|develop$ || -n $TRAVIS_TAG"  
