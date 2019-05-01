@@ -3,13 +3,11 @@ language: node_js
 services:
   - docker
 
-script:
-  - docker build -t ikethecoder/gitlab-keycloak-group-sync .
-
 jobs:
   include:
     - stage: deploy
-      install: skip # bundle install is not required
+      install:
+      - docker build -t ikethecoder/gitlab-keycloak-group-sync .
       provider: script
       script: bash docker_push
       on:
