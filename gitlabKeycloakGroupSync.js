@@ -140,6 +140,7 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
     isRunning = false;
   }, function (err) {
     console.error(err.stack);
+    isRunning = false;
   });
 }
 
