@@ -1,6 +1,7 @@
 {
   "port": 8080,
   "syncInterval": "10m",
+  "maintainerGroup": "oc",
   "gitlab": {
     "api": "https://repo.mwaysolutions.com/api/v4",
     "privateToken": "My_S3Cr3T_T0k3n"

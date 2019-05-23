@@ -11,6 +11,10 @@
       "type": "string",
       "default": "10m"
     },
+    "maintainerGroup": {
+      "type": "string",
+      "default": "oc"
+    },
     "gitlab": {
       "id": "/gitlab",
       "type": "object",

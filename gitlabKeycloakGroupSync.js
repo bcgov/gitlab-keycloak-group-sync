@@ -8,6 +8,7 @@ module.exports = GitlabKeycloakGroupSync;
 var isRunning = false;
 var gitlab = undefined;
 var keycloak = undefined;
+var maintainerGroup = undefined;
 
 function GitlabKeycloakGroupSync(config) {
   if (!(this instanceof GitlabKeycloakGroupSync))
@@ -15,6 +16,8 @@ function GitlabKeycloakGroupSync(config) {
 
   gitlab = NodeGitlab.createThunk(config.gitlab);
   keycloak = new Keycloak(config.keycloak);
+
+  maintainerGroup = config.maintainerGroup;
 }
 
 
@@ -27,7 +30,6 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
   isRunning = true;
 
   co(function* () {
-    var maintainerGroup = "oc";
 
     // find all users with an external identiy
     var gitlabUsers = [];
