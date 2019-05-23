@@ -1,12 +1,15 @@
+language: node_js
+
 services:
   - docker
 
-before_install:
-  - docker build -t ikethecoder/gitlab-keycloak-group-sync .
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
-deploy:
-  provider: script
-  script: bash docker_push
-  on:
-    branch: master
+jobs:
+  include:
+    - stage: deploy
+      install:
+      - docker build -t ikethecoder/gitlab-keycloak-group-sync .
+      provider: script
+      script: bash docker_push || travis_terminate 1
+      on:
+        all_branches: true
+        condition: "$TRAVIS_BRANCH =~ ^master|develop$ || -n $TRAVIS_TAG"  

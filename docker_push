@@ -1,4 +1,21 @@
 #!/bin/bash
+set -e
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+
+export BASE="ikethecoder"
+export REPO="gitlab-keycloak-group-sync"
 
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-docker push ikethecoder/gitlab-keycloak-group-sync
+
+docker tag $BASE/$REPO $BASE/$REPO:latest
+docker tag $BASE/$REPO $BASE/$REPO:$TRAVIS_COMMIT
+docker push $BASE/$REPO:latest
+docker push $BASE/$REPO:$TRAVIS_COMMIT
+
+if [ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]; then
+    echo "dockerfile tagged pushing now"
+    docker tag $BASE/$REPO $BASE/$REPO:$TRAVIS_TAG
+    docker push $BASE/$REPO:$TRAVIS_TAG
+    echo "$TRAVIS_TAG pushed successfully"
+fi
