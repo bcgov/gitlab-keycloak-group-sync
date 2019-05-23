@@ -27,6 +27,8 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
   isRunning = true;
 
   co(function* () {
+    var maintainerGroup = "oc";
+
     // find all users with an external identiy
     var gitlabUsers = [];
     var pagedUsers = [];
@@ -51,7 +53,7 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
     }
     while(pagedGroups.length == 100);
     
-    var gitlabGroupNames = ['admins'];
+    var gitlabGroupNames = [maintainerGroup];
 
     for (var group of gitlabGroups) {
       gitlabGroupNames.push(group.name);
@@ -76,7 +78,7 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
     console.log("Group Count ", keycloakGroups.length);
 
     var groupMembers = {};
-    groupMembers['admins'] = [];
+    groupMembers[maintainerGroup] = [];
 
     for (var keycloakGroup of keycloakGroups) {
       if (gitlabGroupNames.indexOf(keycloakGroup.name) != -1) {
@@ -108,7 +110,7 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
           continue; // ignore owners
         }
 
-        var access_level = groupMembers['admins'].indexOf(member.id) > -1 ? 40 : 30;
+        var access_level = groupMembers[maintainerGroup].indexOf(member.id) > -1 ? 40 : 30;
         if (member.access_level !== access_level) {
           console.log('update group member permission', { id: gitlabGroup.id, user_id: member.id, access_level: access_level }, " upgrade from ", member.access_level);
           gitlab.groupMembers.update({ id: gitlabGroup.id, user_id: member.id, access_level: access_level });
@@ -129,7 +131,7 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
       //add new users
       var toAddIds = members.filter(x => currentMemberIds.indexOf(x) == -1);
       for (var id of toAddIds) {
-        var access_level = groupMembers['admins'].indexOf(id) > -1 ? 40 : 30;
+        var access_level = groupMembers[maintainerGroup].indexOf(id) > -1 ? 40 : 30;
         console.log('add group member', { id: gitlabGroup.id, user_id: id, access_level: access_level });
         gitlab.groupMembers.create({ id: gitlabGroup.id, user_id: id, access_level: access_level });
       }
