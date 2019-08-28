@@ -7,7 +7,7 @@ jobs:
   include:
     - stage: deploy
       install:
-      - docker build -t ikethecoder/gitlab-keycloak-group-sync .
+      - docker build -t bcgovimages/gitlab-keycloak-group-sync .
       provider: script
       script: bash docker_push || travis_terminate 1
       on:
