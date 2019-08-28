@@ -1,6 +1,6 @@
 # gitlab-keycloak-group-sync
 
-It provides a way to sync keycloak group members with gitlab groups
+It provides a way to push keycloak group membership to gitlab groups.
 
 ## Prerequisites
 
