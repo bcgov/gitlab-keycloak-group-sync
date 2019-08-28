@@ -3,7 +3,7 @@ set -e
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 
-export BASE="ikethecoder"
+export BASE="bcgovimages"
 export REPO="gitlab-keycloak-group-sync"
 
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
