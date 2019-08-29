@@ -1,15 +1,17 @@
 language: node_js
-
 services:
-  - docker
-
+- docker
 jobs:
   include:
-    - stage: deploy
-      install:
-      - docker build -t bcgovimages/gitlab-keycloak-group-sync .
-      provider: script
-      script: bash docker_push || travis_terminate 1
-      on:
-        all_branches: true
-        condition: "$TRAVIS_BRANCH =~ ^master|develop$ || -n $TRAVIS_TAG"  
+  - stage: deploy
+    install:
+    - docker build -t bcgovimages/gitlab-keycloak-group-sync .
+    provider: script
+    script: bash docker_push || travis_terminate 1
+    on:
+      all_branches: true
+      condition: "$TRAVIS_BRANCH =~ ^master|develop$ || -n $TRAVIS_TAG"
+env:
+  global:
+  - secure: rFYOArGoKKKuIXffRdTQVJjIdXzKG9TzjeUZV6Uvhb3fzzY9rKqy1XPouG198cdn5RyQT6FMSFJA+n2lZKxGXsWjmGr5mQQc8+8XvCT7cnuk83VQ2S+F2HWKHB4SqGeq1DBfslHFYGCzxMSQokriBH8agkpBIWA2cws8ZsjmciRGVKEW7L+TtA4B6HnOfHzrMP6ydvNyUO7zlxS1y8u2EUYZ35YeMbBAas1vmNc0vjpO7lly6vjx7ngjcoE7iSwhooT4o6nJg7Dxc4vsvMSyJyDar/KQxr4H1n2mqHQjnZxX6hwZCeGm5sYH+jvZs5PrIwXZ5s5H42QxEMjWdm3NCQvnhkuwIPiU3gLcN6NMtJOIObGlVTsXCyGFcEz1BlZcX5ztwVwmCQ3oIm6Q6q3cUYpJJJ/pQvr8bK643r2C5YC9tkMiSlEUELOZcq6BGxbA10/NbbtE+o6vZ/akK29voQ7el40xkGZ6qx7ckYrVttUEbFns+NYE0mJNb/4bCeW5ZIagD5xbaT3tvs7hvGgJm40yCIVGRYuw9XNsoNuZtb3zULnobO5evgWpxo7LHPRyEu/0r228YBPEgwqmJtdfB5fVR1EDOEYu5DxJWrnAAyVVhyGfDP43VvYxYfirPhUB24baV8n0yjoUlUmPumXFdmVdt6KbLucPEZuiFDdpFNs=
+  - secure: ZFzhIsWwHnTOOGx63rZ098I5AiyMEVvc5tT0KYF7s89u6T/EyIja9vAHoilApgXCpIyU5GS74mOTu1jITgUor4/SiaSkvKHBg5DExNe1S1yKVeWMNcZnbyOlhAkKOWUqb1HEqhFOWudLAbd7GnUUCWMWRI6oWJGfzyA6Z2JCz8dBpJNaUmB20qU8WafiNNsLkw2YRkEzdjZclIJiXSSqoRLN65VERq7yd2OPMDKirRxUiWi8rN+Eqx04VOxxxJLiI6A44+INaaihI9yCTO3IvkV8wr1ViFRduOzbxKGEovFQX+qfNq8dp1e347RRmOyKcqZCK6DVzIcYhofXnl1vZRK/zHWO42y5IaOT6RY/vqdlvPF2qHob8+iBMOQdE6Q0pwgq0J6I2V+mWUTxlAy8TijUbGSwrwJMDdTinkuIlhih/z6AcO9KngcYdDJynJFGAGUimPHARL65BsifEmai/ARdSg2QKunX1dhQHtUF/XL/yjX0pc+2PKsgpW/sZH1ELl/whzREIUscd/c0gKSnDMfKDexFNUHwq0nnzV0G4w8fiatMDzUcKYGzt8RNkcJbaHP1zmi//lg+yUPKLQS2ZHdS5SW+K71okW3Ov8AOuZFmVoaD3aZof5m0kjZEmyCrQFnzwBL6UpHU4aF/Rm8IXBLb+x4x+c/9KNJuuunQIe8=
