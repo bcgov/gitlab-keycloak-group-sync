@@ -28,3 +28,14 @@ Just start the node application.
 ```bash
 npm start
 ```
+
+## Running in Docker
+
+```
+docker build --tag gitlab-keycloak-group-sync .
+
+docker run -ti --rm \
+  -v `pwd`/config.json:/opt/gitlab_keycloak_group_sync/config.json \
+  gitlab-keycloak-group-sync
+
+```

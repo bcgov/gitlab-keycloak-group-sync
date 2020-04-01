@@ -54,17 +54,28 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
 
     }
     while(pagedGroups.length == 100);
-    
+
     var gitlabGroupNames = [maintainerGroup];
 
     for (var group of gitlabGroups) {
       gitlabGroupNames.push(group.name);
     }
 
+        
+    // Get all the Keycloak users
+    var keycloakUserInventory = {}
+    var keycloakUsers = yield keycloak.getUsers();
+    console.log("Keycloak Users (" + keycloakUsers.length + "):");
+    for (user of keycloakUsers) {
+        console.log("    " + user.username + " enabled = " + user.enabled);
+        keycloakUserInventory[user.username] = user;
+    }
+    console.log("--");
+   
     var gitlabUserMap = {};
     var gitlabLocalUserIds = [];
     for (var user of gitlabUsers) {
-      if (user.identities.length > 0) {
+      if (user.identities.length > 0  && user.username.toLowerCase() in keycloakUserInventory) {
         // gitlabUserMap[user.identities[0].extern_uid] = user.id
         if (user.username.toLowerCase() != user.id) {
             console.log("gitlabUserMap: ", user.username.toLowerCase(), " != ", user.id);
@@ -84,7 +95,7 @@ GitlabKeycloakGroupSync.prototype.sync = function () {
 
     for (var keycloakGroup of keycloakGroups) {
       if (gitlabGroupNames.indexOf(keycloakGroup.name) != -1) {
-        console.log("Lookup ", keycloakGroup.name);
+        console.log("Found group", keycloakGroup.name, "in gitlab.  Retrieving group member from keycloak");
         groupMembers[keycloakGroup.name] = yield resolveKeycloakGroupMembers(keycloak, keycloakGroup, gitlabUserMap);
       }
     }
